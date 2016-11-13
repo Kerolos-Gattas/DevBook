@@ -1,0 +1,17 @@
+<hibernate-configuration>
+	<session-factory>
+<!--
+ HibernateUtil class does the following
+	        <property name="connection.url">jdbc:mysql://localhost:3306/social</property>
+	        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+	        <property name="dialect">org.hibernate.dialect.MySQL5Dialect</property>
+	        <property name="connection.username">xxxx</property>
+	        <property name="connection.password">xxxx</property>
+	        <property name="hbm2ddl.auto">update</property>
+	        <property name="show_sql">false</property>
+	        <property name="format_sql">false</property>
+ 		 
+-->
+		<mapping class="models.Account" />
+	</session-factory>
+</hibernate-configuration>

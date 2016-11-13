@@ -2,6 +2,9 @@ package devBook;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+
+import encryption.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,7 +14,8 @@ public class StartApplication extends Application {
     public Set<Class<?>> getClasses() {
     	final Set<Class<?>> classes = new HashSet<Class<?>>();
         // register root resource
-    	//classes.add(EncryptionResource.class);
+    	classes.add(EncryptionResource.class);
+        classes.add(Authentication.class);    	
         return classes;
     }
 }

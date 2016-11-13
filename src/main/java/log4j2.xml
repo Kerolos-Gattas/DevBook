@@ -1,0 +1,21 @@
+<Configuration>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</Console>
+		<File name="MyFile" fileName="/Users/Kento/desktop/mylog.log"
+			immediateFlush="true" append="true">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</File>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.apache.log4j.xml" level="all" />
+		<Logger name="log4j2.Log4j2Logger" level="all" />
+		<logger name="com.jersey.logging" level="all">
+			<AppenderRef ref="MyFile" />
+		</logger>
+		<root level="error">
+			<appender-ref ref="Console" />
+		</root>
+	</Loggers>
+</Configuration>
