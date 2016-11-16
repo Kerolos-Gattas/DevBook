@@ -1,5 +1,7 @@
 package models;
 
+import java.sql.Timestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -21,13 +23,24 @@ private static long ZERO = 0;
 	@Column(name="PASSWORD")
 	private String password;
 	
-	public Account (String username, String password){
-		this.username = username;
-		this.password = password;
-	}
+	@Column(name="EMAIL")
+	private String email;
+	
+	@Column(name="LOGGEDIN")
+	private int loggedIn;
+	
+	@Column(name="LASTLOGINTIME")
+	private String lastLoginTime;
 	
 	public Account(){
 		
+	}
+	
+	public Account (String username, String password, String email){
+		this.username = username;
+		this.password = password;
+		this.email = email;
+		loggedIn = 0;
 	}
 	
 	/*public Counter copy(Counter counter){
@@ -53,5 +66,25 @@ private static long ZERO = 0;
 	
 	public String toString() {
 		return username + ":" + password;
+	}
+
+	public int getLoggedIn() {
+		return loggedIn;
+	}
+	
+	public String getPassword(){
+		return password;
+	}
+	
+	public void setLoggedIn(int value){
+		loggedIn = value;
+	}
+	
+	public void setLastLoginTime(String time){
+		lastLoginTime = time;
+	}
+	
+	public String getLastLoginTime(){
+		return lastLoginTime;
 	}
 }

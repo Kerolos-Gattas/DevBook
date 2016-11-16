@@ -1,5 +1,6 @@
 package encryption;
 
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,32 +21,41 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import models.Account;
+import persistence.HibernateDatabaseAccountManager;
+
 @Path("/authentication")
 public class Authentication {
-	
+
 	//stroing the lists of created users and loggedin users
-	private static Map<String,String> loginCredentials = new HashMap<String,String>();
-	private static ArrayList<String> loggedIn = new ArrayList<String>();
+	//private static Map<String,String> loginCredentials = new HashMap<String,String>();
+	//private static ArrayList<String> loggedIn = new ArrayList<String>();
 	
 	private final String SEPERATOR = "/";
-	
-	final int LOGIN_EXPIRY_TIME = 30; //Secs
+
+	private static HibernateDatabaseAccountManager manager;
+
+	final int LOGIN_EXPIRY_TIME = 30000; //Secs
 	DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@POST
 	@Path("create-p")
 	@Produces("application/json")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response create(@FormParam("first") String userName, 
-			@FormParam("second") String password) {
+	public Response create(@FormParam("userName") String userName, 
+			@FormParam("password") String password, @FormParam("email") String email) {
 		try {
-			String token = issueToken(userName + SEPERATOR + password);
+			//String userNameToken = issueToken(userName);
+			//String passwordToken = issueToken(password);
+			//String emailToken = issueToken(email);
 			
 			//check if user already exists, if so return an error to the user otherwise create the user 
-			boolean userExists = loginCredentials.containsKey(userName);
-			if(!userExists){
-				loginCredentials.put(userName, password);
-				return Response.ok("Created").build();
+			Account userExists = getAccount(userName);
+			
+			if(userExists == null){
+				Account account = new Account(userName, password, email);
+				manager.add(account);
+				return Response.ok("Created Success").build();
 			}
 
 			return Response.status(406).build(); 
@@ -59,28 +69,26 @@ public class Authentication {
 	@Path("login-p")
 	@Produces("application/json")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response login(@FormParam("first") String userName, 
-			@FormParam("second") String password) {
-		try {
-			String retrievedPassword = loginCredentials.get(userName);
-			boolean userLoggedIn = false;
+	public Response login(@FormParam("userName") String userName, 
+			@FormParam("password") String password) {
+		try {			
 			
+			Account account = getAccount(userName);
+
 			//check if user is already logged in
-			for(int i = 0; i < loggedIn.size(); i++){
-				if(loggedIn.get(i).contains(userName))
-					userLoggedIn = true;
+			if(account == null || account.getLoggedIn() == 1){
+				return Response.status(406).build();
 			}
 
 			//if user is not logged in and the login matches the one in the database then the user logs in successfully
-			if(retrievedPassword != null && !userLoggedIn){
-				if(retrievedPassword.equals(password)){
-					String date = format.format(new Date());
-					String token = issueToken(userName + SEPERATOR + date);
-					loggedIn.add(userName + SEPERATOR + date); //store the user in the list of logged in users
-					return Response.ok(token).build();
-				}
+			if(account.getPassword().equals(password)){
+				Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+				String loginToken = issueToken(userName + SEPERATOR + timestamp.getTime());
+				account.setLastLoginTime(loginToken);
+				account.setLoggedIn(1);
+				manager.update(account);
+				return Response.ok(loginToken).build();
 			}
-
 			return Response.status(406).build();
 		} catch (Exception exception) {
 			return Response.ok(exception.getLocalizedMessage()).build();
@@ -91,16 +99,17 @@ public class Authentication {
 	@Path("logout-p")
 	@Produces("application/json")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response logout(@FormParam("first") String firstParameter) {
-		try {
-			//decrypt the token and compare it to the exsisting one
-			Encryption encrypter = Encryption.getDefaultEncrypter();
-			String token = encrypter.decrypt(firstParameter);
+	public Response logout(@FormParam("logoutCredentials") String logoutCredentials, 
+			@FormParam("userName") String userName) {
+		try {		
+			Account account = getAccount(userName);			
 			
 			//if user is logged in then remove them from the list and send a success message
-			if(loggedIn.contains(token)){
-				loggedIn.remove(token);
-				return Response.ok("User Logged out success").build();
+			if(account.getLastLoginTime().equals(logoutCredentials)){
+				account.setLoggedIn(0);
+				account.setLastLoginTime(null);
+				manager.update(account);
+				return Response.ok("Logout success").build();
 			}
 
 			return Response.status(406).build();
@@ -113,28 +122,33 @@ public class Authentication {
 	@Path("validate-p")
 	@Produces("application/json")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response validate(@FormParam("first") String firstParameter) {
+	public Response validate(@FormParam("credentials") String credentials, 
+			@FormParam("userName") String userName) {
 		try {
 			//decrypt the token
 			Encryption encrypter = Encryption.getDefaultEncrypter();
-			String token = encrypter.decrypt(firstParameter);
-			
+			String token = encrypter.decrypt(credentials);
+
+			Account account = getAccount(userName);
+
 			//check if the user is logged in
-			if(!loggedIn.contains(token)){
+			if(account.getLoggedIn() == 0){
 				return Response.status(406).build();
 			}
 
 			//add the specified time to the timestamp associated with the user
+			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+			Long cuurentTime = timestamp.getTime();
+			
 			String orignalDate = token.substring(token.lastIndexOf(SEPERATOR) + 1);
-			Date date = addTimeToDate(format.parse(orignalDate));
-			//get current date
-			Date currentDate = new Date();
+			Long orignalTime = Long.parseLong(orignalDate) + LOGIN_EXPIRY_TIME;
+			
 
 			//compare dates and see if the user login is still valid
-			if(date.after(currentDate)){
-				return Response.ok("true").build();
+			if(cuurentTime < orignalTime){
+				return Response.ok("Validate Success").build();
 			}
-			
+
 			return Response.status(406).build();
 		} catch (Exception exception) {
 			return Response.ok(exception.getLocalizedMessage()).build();
@@ -156,13 +170,24 @@ public class Authentication {
 	}
 
 	//adds the specified time to the date
-	private Date addTimeToDate(Date orignalTimeStamp){
+	/*private Date addTimeToDate(Date orignalTimeStamp){
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(orignalTimeStamp);
-		
+
 		//change this to MINUTE instead of SECOND if you want to add minutes instead. As well as adjust the LOGIN_EXPIRY_TIME variable above.
 		cal.add(Calendar.SECOND, LOGIN_EXPIRY_TIME); 
 		Date newTime = cal.getTime();
 		return newTime;
+	}*/
+	
+	private Account getAccount(String userName){
+		
+		if(manager == null){
+			manager = manager.getDefault();
+			manager.setupTable();
+		}		
+
+		Account account = manager.getAccountByUserName(userName);
+		return account;
 	}
 }

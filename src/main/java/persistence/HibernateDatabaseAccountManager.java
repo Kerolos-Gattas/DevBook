@@ -1,5 +1,14 @@
 package persistence;
 
+import org.hibernate.HibernateException;
+import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+
+import common.LoggerManager;
+import common.Messages;
+import models.Account;
+
 //Copied and adjusted from a class task
 public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseManager{
 
@@ -15,13 +24,18 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 	private static String METHOD_GET_ALL = "getAllCounters";
 	private static String RESET_ALL = "resetAllCounters";*/
 
+	private static String METHOD_GET_OBJECT_WITH_NAME = "getObjectWithName";
+	private static String SELECT_ACCOUNT_WITH_USERNAME = "from "
+			+ ACCOUNT_CLASS_NAME + " as account where account.username = ?";
+	
 	private static String INCOMMING_COUNTER_NAME = "incomming msgs";
 	public static String OUTGOING_COUNTER_NAME = "outgoing msgs";
 
 	private static final String DROP_TABLE_SQL = "drop table "
 			+ ACCOUNT_TABLE_NAME + ";";
-	private static String CREATE_TABLE_SQL = "create table ACCOUNT(USERNAME varchar(15) primary key not null, "
-			+ "PASSWORD varchar(20));";
+	private static String CREATE_TABLE_SQL = "create table IF NOT EXISTS ACCOUNT(USERNAME varchar(100) primary key not null, "
+			+ "PASSWORD varchar(100) not null, " + "EMAIL varchar(100) not null, " + "LOGGEDIN boolean not null default 0, "
+			+ "LASTLOGINTIME varchar(100));";
 
 	private static HibernateDatabaseAccountManager manager;
 
@@ -49,36 +63,36 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 	 * @param name
 	 * @return
 	 */
-	/*public synchronized Counter getCounterWithName(String name) {
+	public synchronized Account getAccountByUserName(String userName) {
 		
 		Session session = null;
-		Counter errorResult = null;
-
+		Account error = null;
+		
 		try {
 			session = HibernateUtil.getCurrentSession();
-			Query query = session.createQuery(SELECT_COUNTER_WITH_NAME);
-			query.setParameter(0, name);
-			Counter aCounter = (Counter) query.uniqueResult();
-			return aCounter;
+			Query query = session.createQuery(SELECT_ACCOUNT_WITH_USERNAME);
+			query.setParameter(0, userName);
+			Account account = (Account) query.uniqueResult();
+			return account;
 		} catch (ObjectNotFoundException exception) {
 			LoggerManager.current().error(this,
 					METHOD_GET_OBJECT_WITH_NAME,
 					Messages.OBJECT_NOT_FOUND_FAILED, exception);
-			return errorResult;
+			return error;
 		} catch (HibernateException exception) {
 			LoggerManager.current().error(this,
 					METHOD_GET_OBJECT_WITH_NAME, Messages.HIBERNATE_FAILED,
 					exception);
-			return errorResult;
+			return error;
 		} catch (RuntimeException exception) {
 			LoggerManager.current().error(this,
 					METHOD_GET_OBJECT_WITH_NAME, Messages.GENERIC_FAILED,
 					exception);
-			return errorResult;
+			return error;
 		} finally {
 			closeSession();
 		}
-	}*/
+	}
 
 	/**
 	 * Returns all counters from the database.
