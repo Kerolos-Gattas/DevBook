@@ -43,7 +43,8 @@ public class Authentication {
 	@Produces("application/json")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response create(@FormParam("userName") String userName, 
-			@FormParam("password") String password, @FormParam("email") String email) {
+			@FormParam("password") String password, @FormParam("email") String email,
+			@FormParam("city") String city, @FormParam("country") String country) {
 		try {
 			//String userNameToken = issueToken(userName);
 			//String passwordToken = issueToken(password);
@@ -51,13 +52,14 @@ public class Authentication {
 			
 			//check if user already exists, if so return an error to the user otherwise create the user 
 			Account userExists = getAccount(userName);
+			Account emailExists = getEmail(email);
 			
-			if(userExists == null){
-				Account account = new Account(userName, password, email);
+			if(userExists == null && emailExists == null){
+				Account account = new Account(userName, password, email, city, country);
 				manager.add(account);
 				return Response.ok("Created Success").build();
 			}
-
+			//TODO add why it failed
 			return Response.status(406).build(); 
 		} 
 		catch (Exception exception) {
@@ -188,6 +190,17 @@ public class Authentication {
 		}		
 
 		Account account = manager.getAccountByUserName(userName);
+		return account;
+	}
+	
+	private Account getEmail(String email){
+		
+		if(manager == null){
+			manager = manager.getDefault();
+			manager.setupTable();
+		}		
+
+		Account account = manager.getAccountByEmail(email);
 		return account;
 	}
 }

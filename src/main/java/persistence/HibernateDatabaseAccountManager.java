@@ -27,6 +27,8 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 	private static String METHOD_GET_OBJECT_WITH_NAME = "getObjectWithName";
 	private static String SELECT_ACCOUNT_WITH_USERNAME = "from "
 			+ ACCOUNT_CLASS_NAME + " as account where account.username = ?";
+	private static String SELECT_ACCOUNT_WITH_EMAIL = "from "
+			+ ACCOUNT_CLASS_NAME + " as account where account.email = ?";
 	
 	private static String INCOMMING_COUNTER_NAME = "incomming msgs";
 	public static String OUTGOING_COUNTER_NAME = "outgoing msgs";
@@ -34,8 +36,8 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 	private static final String DROP_TABLE_SQL = "drop table "
 			+ ACCOUNT_TABLE_NAME + ";";
 	private static String CREATE_TABLE_SQL = "create table IF NOT EXISTS ACCOUNT(USERNAME varchar(100) primary key not null, "
-			+ "PASSWORD varchar(100) not null, " + "EMAIL varchar(100) not null, " + "LOGGEDIN boolean not null default 0, "
-			+ "LASTLOGINTIME varchar(100));";
+			+ "PASSWORD varchar(100) not null, " + "EMAIL varchar(100) not null, " + "CITY varchar(50) not null, " + "COUNTRY varchar(50) not null, "+ 
+			"BIO text, " +"LOGGEDIN boolean not null default 0, " + "LASTLOGINTIME varchar(100));";
 
 	private static HibernateDatabaseAccountManager manager;
 
@@ -94,6 +96,43 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 		}
 	}
 
+	/**
+	 * Returns counter from the database found for a given name.
+	 * If not found returns null.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public synchronized Account getAccountByEmail(String email) {
+		
+		Session session = null;
+		Account error = null;
+		
+		try {
+			session = HibernateUtil.getCurrentSession();
+			Query query = session.createQuery(SELECT_ACCOUNT_WITH_EMAIL);
+			query.setParameter(0, email);
+			Account account = (Account) query.uniqueResult();
+			return account;
+		} catch (ObjectNotFoundException exception) {
+			LoggerManager.current().error(this,
+					METHOD_GET_OBJECT_WITH_NAME,
+					Messages.OBJECT_NOT_FOUND_FAILED, exception);
+			return error;
+		} catch (HibernateException exception) {
+			LoggerManager.current().error(this,
+					METHOD_GET_OBJECT_WITH_NAME, Messages.HIBERNATE_FAILED,
+					exception);
+			return error;
+		} catch (RuntimeException exception) {
+			LoggerManager.current().error(this,
+					METHOD_GET_OBJECT_WITH_NAME, Messages.GENERIC_FAILED,
+					exception);
+			return error;
+		} finally {
+			closeSession();
+		}
+	}
 	/**
 	 * Returns all counters from the database.
 	 * Upon error returns null.

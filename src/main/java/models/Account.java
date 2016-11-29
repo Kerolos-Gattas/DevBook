@@ -32,14 +32,25 @@ private static long ZERO = 0;
 	@Column(name="LASTLOGINTIME")
 	private String lastLoginTime;
 	
+	@Column(name="BIO")
+	private String bio;
+	
+	@Column(name="CITY")
+	private String city;
+	
+	@Column(name="COUNTRY")
+	private String country;
+	
 	public Account(){
 		
 	}
 	
-	public Account (String username, String password, String email){
+	public Account (String username, String password, String email, String city, String country){
 		this.username = username;
 		this.password = password;
 		this.email = email;
+		this.city = city;
+		this.country = country;
 		loggedIn = 0;
 	}
 	
