@@ -4,6 +4,7 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 import encryption.*;
+import restCommunication.ProjectCommunication;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +16,8 @@ public class StartApplication extends Application {
     	final Set<Class<?>> classes = new HashSet<Class<?>>();
         // register root resource
     	classes.add(EncryptionResource.class);
-        classes.add(Authentication.class);    	
+        classes.add(Authentication.class);   
+        classes.add(ProjectCommunication.class);
         return classes;
     }
 }

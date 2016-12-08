@@ -45,12 +45,13 @@ private static long ZERO = 0;
 		
 	}
 	
-	public Account (String username, String password, String email, String city, String country){
+	public Account (String username, String password, String email, String city, String country, String bio){
 		this.username = username;
 		this.password = password;
 		this.email = email;
 		this.city = city;
 		this.country = country;
+		this.bio = bio;
 		loggedIn = 0;
 	}
 	
@@ -98,4 +99,18 @@ private static long ZERO = 0;
 	public String getLastLoginTime(){
 		return lastLoginTime;
 	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+	
+	
 }

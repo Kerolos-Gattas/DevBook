@@ -13,5 +13,8 @@
  		 
 -->
 		<mapping class="models.Account" />
+		<mapping class="models.Project" />
+		<mapping class="models.Requests" />
+		<mapping class="models.Members" />
 	</session-factory>
 </hibernate-configuration>

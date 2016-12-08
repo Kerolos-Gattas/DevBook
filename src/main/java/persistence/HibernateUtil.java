@@ -142,5 +142,8 @@ public class HibernateUtil {
 		//HibernateDatabaseAddressManager.getDefault().setupTable();
 		//HibernateDatabaseOptionSettingManager.getDefault().setupTable();
 		HibernateDatabaseAccountManager.getDefault().setupTable();
+		HibernateDatabaseProjectManager.getDefault().setupTable();
+		HibernateDatabaseRequestManager.getDefault().setupTable();
+		HibernateDatabaseMembersManager.getDefault().setupTable();
 	}
 }

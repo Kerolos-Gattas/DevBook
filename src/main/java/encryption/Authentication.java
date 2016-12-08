@@ -44,7 +44,7 @@ public class Authentication {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response create(@FormParam("userName") String userName, 
 			@FormParam("password") String password, @FormParam("email") String email,
-			@FormParam("city") String city, @FormParam("country") String country) {
+			@FormParam("city") String city, @FormParam("country") String country, @FormParam("bio") String bio) {
 		try {
 			//String userNameToken = issueToken(userName);
 			//String passwordToken = issueToken(password);
@@ -55,7 +55,7 @@ public class Authentication {
 			Account emailExists = getEmail(email);
 			
 			if(userExists == null && emailExists == null){
-				Account account = new Account(userName, password, email, city, country);
+				Account account = new Account(userName, password, email, city, country, bio);
 				manager.add(account);
 				return Response.ok("Created Success").build();
 			}

@@ -69,7 +69,7 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 		
 		Session session = null;
 		Account error = null;
-		
+
 		try {
 			session = HibernateUtil.getCurrentSession();
 			Query query = session.createQuery(SELECT_ACCOUNT_WITH_USERNAME);
@@ -281,7 +281,7 @@ public class HibernateDatabaseAccountManager extends AbstractHibernateDatabaseMa
 	}*/
 
 	public boolean setupTable() {
-		HibernateUtil.executeSQLQuery(DROP_TABLE_SQL);
+		//HibernateUtil.executeSQLQuery(DROP_TABLE_SQL);
 		return HibernateUtil.executeSQLQuery(CREATE_TABLE_SQL);
 	}
 
